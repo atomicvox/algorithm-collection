@@ -6,5 +6,5 @@
 #gcc pi.c -lm -fopenmp -o pi.out
 #gcc fibanachi.c  -o fibonachi.out
 #gcc test.c -o test.out
-gcc gravler.c -fopenmp -o gravler.out
+gcc gravler.c -fopenmp -O3 -o gravler.out
 #gcc rand_test.c -o rand_test.out -lm
