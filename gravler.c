@@ -6,6 +6,9 @@
 #include <locale.h>
 
 
+//run using gcc gravler.c -fopenmp -O3 -o gravler.out
+
+
 // Used to seed the generator.           
 //void fast_srand(int seed) {
 //    g_seed = seed;
@@ -13,9 +16,9 @@
 
 // Compute a pseudorandom integer.
 // Output value in range [0, 32767]
-int fast_rand(long int *g_seed) {
+int fast_rand(long int *restrict g_seed) {
     *g_seed = (6364136223846793005*(*g_seed)+1442695040888963407);//black magic
-    return (*g_seed>>32)&0x7FFF;
+    return (*g_seed>>32);//&0x7FFF;
 }
 
 void main(int argv, char **argc) {
@@ -34,12 +37,11 @@ void main(int argv, char **argc) {
     
 
     gettimeofday(&start, NULL);
-    #pragma omp parallel
+    #pragma omp parallel reduction(max:max_parylized)
     {
         int id = omp_get_thread_num();
         int nthreads = omp_get_num_threads();
-        int par, temp_rand;
-        int parMax = 0;
+        int par=0, temp_rand=0;
 
         unsigned long i;
         int c;
@@ -60,28 +62,22 @@ void main(int argv, char **argc) {
                 par += !(temp_rand & 3);
                 temp_rand =  temp_rand >>2;
                 */
-                /*
-                if (!(c % 7)){
+                
+                if ((c & 3)==0){
                     //temp_rand = rand();
                     temp_rand = fast_rand(&g_seed);
                 }
-                par += !(temp_rand & 3);
+                par += ((temp_rand & 3) == 0);
                 temp_rand =  temp_rand >>2;
-                */
+                
 
 
-                par += !(fast_rand(&g_seed) & 3);
+                //par += !(fast_rand(&g_seed) & 3);
                 
                 //par += !(c & 3);
             }
-            if (parMax < par){
-                parMax = par;
-            }
-        }
-        #pragma omp critical
-        {
-            if (max_parylized < parMax){
-                max_parylized = parMax;
+            if (max_parylized < par){
+                max_parylized = par;
             }
         }
 
