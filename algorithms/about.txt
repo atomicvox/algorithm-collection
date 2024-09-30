@@ -1,0 +1,9 @@
+Information about each algorithm
+
+gravler:
+    To be added
+pi:
+    Figures out pi by getting area under x^2 + y^2 = 1 for X and Y >0
+piMonteCarl:
+    Figures out pi by choossing randum x,y in range [-1, 1] then finding if inside circle
+:
