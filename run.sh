@@ -33,9 +33,7 @@ contains() {
     return 1  # Not found
 }
 
-#gcc yellowstoneAlg.c -lm -o yellowstoneAlgE.out
 #gcc fibanachi.c  -o fibonachi.out
-#gcc gravler.c -fopenmp -O3 -o gravler.out
 #gcc rand_test.c -o rand_test.out -lm
 
 
@@ -115,7 +113,7 @@ elif [ $# -eq 3 ]; then
     arg3=$3
 fi
 
-
+#runs it
 if [[ -e "a.out" ]]; then
     ./a.out $arg2 $arg3
     rm "a.out"
