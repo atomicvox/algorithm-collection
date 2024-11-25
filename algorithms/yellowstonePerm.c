@@ -7,6 +7,10 @@
 #include <sys/time.h>
 #include <locale.h>//for using commas in integers in %'d. Is needed for '
 
+#include <stdbool.h>
+#include <unistd.h>
+
+
 struct node {
     int val;
     int pos;
@@ -254,16 +258,31 @@ int smallestFactor(int val){
     return val;
 }
 
+
 int main(int argc, char *argv[]) {
     struct list *list = list_create();
     int i,num, prev, prev2;
     double timeTaken;
     struct timeval start, stop;
     int max = 10000;
+    bool isQuite = 0;
 
-    if (argc ==2){
+    if (argc >= 2){
         max = atoi(argv[1]);
     }
+
+    int opt;
+
+    //args
+    while ((opt = getopt(argc, argv, "q")) != -1) {
+        switch (opt) {
+        case 'q': isQuite = 1; break;
+        default:
+            //fprintf(stderr, "Usage: %s [-q] \n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
     gettimeofday(&start, NULL);
     setlocale(LC_NUMERIC, "");
     list_add(list, 1);
@@ -283,14 +302,16 @@ int main(int argc, char *argv[]) {
             num++;
         }
         list_add(list,num);
-        printf("The %d number added is %d\n", i, num);        
+        if (!isQuite){
+            printf("The %d number added is %d\n", i, num);    
+        }
     }
     
     list_save(list);
 
     gettimeofday(&stop, NULL);
     timeTaken = (double)(stop.tv_sec-start.tv_sec) + 1e-6 *(stop.tv_usec-start.tv_usec);
-    printf("Completed list the first %'d numbers of the yellostoneAlg w Euclidian GCD.\n", max);
+    printf("Completed list the first %'d numbers of the yellostonePerm w Euclidian GCD.\n", max);
     printf("Done in %8.4f seconds doing on average %'.0f numbers per sec.\n", timeTaken, max/timeTaken);
 
 

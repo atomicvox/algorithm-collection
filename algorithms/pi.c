@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
-#include <sys/time.h>
+#include <omp.h>//for multithreading
+#include <sys/time.h>//for getting start and end time
 #include <locale.h>//for using commas in integers in %'d. Is needed for '
 #include <math.h>//for M_PI and fabs
 

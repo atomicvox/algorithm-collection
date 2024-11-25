@@ -6,4 +6,7 @@ pi:
     Followed by a second arg which is number of times to run
 piMonteCarl:
     Followed by a second arg which is number of times to run
+yellowstonePerm:
+    Followed by a second arg which is how how long the series should be
+    Options -q quiets output
 :
