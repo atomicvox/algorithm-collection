@@ -52,13 +52,13 @@ fi
 
 case $choice in
     pi)
-        gcc algorithms/pi.c -fopenmp -O2
+        gcc algorithms/pi.c -lm -fopenmp
         ;;
     piMonteCarlo)
-        gcc algorithms/piMonteCarlo.c -lm -fopenmp -O2
+        gcc algorithms/piMonteCarlo.c -lm -fopenmp -O1
         ;;
     gravler)
-        gcc gravler.c -fopenmp -O3
+        gcc algorithms/gravler.c -fopenmp -O3
         ;;
     *)
         echo "Invalid option"
