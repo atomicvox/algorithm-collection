@@ -3,16 +3,35 @@
 #include <omp.h>
 #include <sys/time.h>
 #include <locale.h>//for using commas in integers in %'d. Is needed for '
+#include <stdbool.h>
+#include <unistd.h>
+
 
 #include "infNum.c"
 
 int main(int argc, char *argv[]) {
     double timeTaken;
     struct timeval start, stop;
-    int max = 100,i;
-    struct infNum *infNum1 = infNumCreate(), *infNum2 = infNumCreate(), *infNum3;
-    char filename[] = "fibonachi.txt";
+    int max = 100, i, print_last = 0;
+    struct infNum *infNum1 = infNum_Create(), *infNum2 = infNum_Create(), *infNum3;
+    char filename[] = "fibonacci.txt";
     FILE *fptr;
+
+
+    if (argc >=2){
+        max = atoi(argv[1]);
+    }
+
+    int opt;
+    //args
+    while ((opt = getopt(argc, argv, "l")) != -1) {
+        switch (opt) {
+        case 'l': print_last = 1; break;
+        default:
+            //fprintf(stderr, "Usage: %s [-q] \n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
 
     //Initiates number
     infNum_add_node(infNum1, 0);
@@ -24,19 +43,20 @@ int main(int argc, char *argv[]) {
 
     fptr = fopen(filename, "a");
     //adds first num
-    fprintf(fptr, "%s", "0,1");
-    
-
-    if (argc ==2){
-        max = atoi(argv[1]);
+    if (!print_last){
+        fprintf(fptr, "%s", "0,1");
     }
+
     gettimeofday(&start, NULL);
     setlocale(LC_NUMERIC, "");
 
     for (i=2; i < max; i ++){
         infNum3 = infNum_add(infNum1, infNum2);
-        fprintf(fptr, "%s", ",");
-        fprint_infNum(infNum3, fptr);
+        if (!print_last){
+            fprintf(fptr, "%s", ",");
+            fprint_infNum(infNum3, fptr);
+        }
+
         
         infNum_clear(infNum1);
         free(infNum1);
@@ -51,6 +71,15 @@ int main(int argc, char *argv[]) {
         }
 
     }
+
+    if (print_last){
+        fprint_infNum(infNum2, fptr);
+    }
+
+    infNum_clean(infNum1);
+    infNum_clean(infNum2);
+    free(infNum1);
+    free(infNum2);
     fclose(fptr);
 
 

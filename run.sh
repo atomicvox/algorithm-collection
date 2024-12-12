@@ -1,7 +1,7 @@
 #!/bin/bash
 
-options=( "pi" "piMonteCarlo" "gravler" "yellowstonePerm" )
-hasArg3=( "yellowstonePerm" )
+options=( "pi" "piMonteCarlo" "gravler" "yellowstonePerm" "fibonacci")
+hasArg3=( "yellowstonePerm" "fibonacci" )
 
 help(){
     if [ $# -eq 0 ]; then
@@ -33,7 +33,6 @@ contains() {
     return 1  # Not found
 }
 
-#gcc fibanachi.c  -o fibonachi.out
 #gcc rand_test.c -o rand_test.out -lm
 
 
@@ -75,6 +74,9 @@ case $choice in
         ;;
     yellowstonePerm)
         gcc algorithms/yellowstonePerm.c -lm -fopenmp -O2
+        ;;
+    fibonacci)
+        gcc algorithms/fibonacci.c -O1
         ;;
     *)
         echo "Invalid option"

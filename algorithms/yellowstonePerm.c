@@ -243,7 +243,6 @@ int main(int argc, char *argv[]) {
     }
 
     int opt;
-
     //args
     while ((opt = getopt(argc, argv, "q")) != -1) {
         switch (opt) {
