@@ -191,35 +191,6 @@ void list_print(struct list *list){
     printf("%s","\n");
 }
 
-/*
-Slow as balls
-struct list *factor(int val){
-    //Outputs a list containing the factors of val
-    struct list *list = list_create();
-
-    #pragma omp parallel
-    {
-        int i;
-        int id = omp_get_thread_num();
-        int nthreads = omp_get_num_threads();
-        for (i = 2+id; i <= sqrt(val); i+=nthreads){ 
-            if (val % i == 0){
-                #pragma omp critical
-                {
-                    list_add(list, i);
-                    if (i != val /i){
-                     list_add(list, val / i);
-                    }
-                }
-            }
-        }
-    }
-    list_add(list, val);
-    return list;
-}
-
-*/
-
 struct list *factor(int val){
     // Outputs a list containing the factors of val
     struct list *list = list_create();

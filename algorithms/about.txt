@@ -10,4 +10,7 @@ piMonteCarl:
 yellowstonePerm:
     https://www.youtube.com/watch?v=DUaqiM1bGX4
     Finds numbers in the Yellowstone Permutation
+fibanachi:
+    Prints the fibanachi numbers to a file
+    Outputs every 1000 numbers
 :
