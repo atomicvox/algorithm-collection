@@ -3,19 +3,20 @@
 #include <omp.h>
 #include <sys/time.h>
 #include <locale.h>//for using commas in integers in %'d. Is needed for '
+
 #include "infNum.c"
 
 int main(int argc, char *argv[]) {
     double timeTaken;
     struct timeval start, stop;
     int max = 100,i;
-    struct infNum *num1 = infNumCreate(), *num2 = infNumCreate(), *num3;
+    struct infNum *infNum1 = infNumCreate(), *infNum2 = infNumCreate(), *infNum3;
     char filename[] = "fibonachi.txt";
     FILE *fptr;
 
     //Initiates number
-    list_add(num1, 0);
-    list_add(num2, 1);
+    infNum_add_node(infNum1, 0);
+    infNum_add_node(infNum2, 1);
 
     //clears
     fptr = fopen(filename, "w");
@@ -33,17 +34,18 @@ int main(int argc, char *argv[]) {
     setlocale(LC_NUMERIC, "");
 
     for (i=2; i < max; i ++){
-        num3 = add_nums(num1, num2);
+        infNum3 = infNum_add(infNum1, infNum2);
         fprintf(fptr, "%s", ",");
-        fprintNum(num3, fptr);
+        fprint_infNum(infNum3, fptr);
         
-        list_clear(num1);
-        free(num1);
+        infNum_clear(infNum1);
+        free(infNum1);
 
-        num1 = num2;
-        num2 = num3;
-        num3 = NULL;
+        infNum1 = infNum2;
+        infNum2 = infNum3;
+        infNum3 = NULL;
 
+        //every so often prints out a number
         if (i%1000 == 0){
             printf("On %d\n", i);
         }
