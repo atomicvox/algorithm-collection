@@ -13,4 +13,6 @@ yellowstonePerm:
 fibanachi:
     Prints the fibanachi numbers to a file
     Outputs every 1000 numbers
+fCount:
+    Prints the count of ASCII character 32-126
 :

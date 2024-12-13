@@ -1,6 +1,7 @@
 #!/bin/bash
 
-options=( "pi" "piMonteCarlo" "gravler" "yellowstonePerm" "fibonacci")
+options=( "pi" "piMonteCarlo" "gravler" "yellowstonePerm" "fibonacci" "fCount")
+timesToRun=( "pi" "piMonteCarlo" "gravler" "yellowstonePerm" "fibonacci" )
 hasArg3=( "yellowstonePerm" "fibonacci" )
 
 help(){
@@ -78,6 +79,9 @@ case $choice in
     fibonacci)
         gcc algorithms/fibonacci.c -O1
         ;;
+    fCount)
+        gcc algorithms/fCount.c -O1
+        ;;
     *)
         echo "Invalid option"
         exit 1;
@@ -85,10 +89,18 @@ case $choice in
 esac
 
 #second arg
-if [ ! $# -ge 2 ]; then
+if contains "${timesToRun[@]}" "$choice"; then
+    if [ ! $# -ge 2 ]; then
     echo "Number of times to run: "
     read arg2
+    fi
+else
+    if [ ! $# -ge 2 ]; then
+    echo "File: "
+    read arg2
+    fi
 fi
+
 
 if [ $# -ge 2 ]; then
     case $2 in

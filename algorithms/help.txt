@@ -12,4 +12,6 @@ yellowstonePerm:
 fibanachi:
     Followed by a second arg which is how how long the series should be
     Options -l prints only last number
+fCount:
+    Followed by second arg which is file name
 :

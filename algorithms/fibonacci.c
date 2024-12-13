@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     }
 
     gettimeofday(&start, NULL);
-    setlocale(LC_NUMERIC, "");
+
 
     for (i=2; i < max; i ++){
         infNum3 = infNum_add(infNum1, infNum2);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     free(infNum2);
     fclose(fptr);
 
-
+    setlocale(LC_NUMERIC, "");
     gettimeofday(&stop, NULL);
     timeTaken = (double)(stop.tv_sec-start.tv_sec) + 1e-6 *(stop.tv_usec-start.tv_usec);
     printf("Completed list the first %'d numbers of the Fibonachi numbers.\n", max);
