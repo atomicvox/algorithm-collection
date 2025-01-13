@@ -15,4 +15,6 @@ fibanachi:
     Outputs every 1000 numbers
 fCount:
     Prints the count of ASCII character 32-126
+war:
+    Does various things involved with the card game war
 :
