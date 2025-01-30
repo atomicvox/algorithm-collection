@@ -9,96 +9,175 @@ int randBetween(int x, int y){
     return x + (rand() % (y - x + 1))
 }
 
+//switch to linked list for que
 struct deck {
-    int cardArray[52] ;
-    int start;
-    int end;
-    int deckLength;
+    struct card *head;
+    struct card *tail;
 }
 
-int popCard(struct deck *deck){
-    //pops first card
+struct card{
+    int val;
+    struct card *next;
+}
 
+int deckEmpty(struct deck *deck){
+    return deck->head == NULL
+}
+
+int deckLength(struct deck *deck){
+    int length = 0;
+    struct card *card = deck->head;
+    if (deckEmpty(deck)){
+        return 0;
+    }
+
+    while (card->next != NULL){
+        length ++;
+        card = card->next;
+    }
+
+    return length;
+}
+
+struct card* popCard(struct deck *deck){
+    //pops first card
     int card;
 
-    if (deck->deckLength = 0){
-        return -1;
+    if (deckEmpty(deck)){
+        return NULL;
     }
 
-    card = deck->cardArray[deck->start];
+    card = deck->head;
 
     //fixes other data
-    deck->deckLength = deck->deckLength -1;
+    if(deck->head = deck->tail){
+        deck->tail = NULL;
+    }
+    deck->head = card->next;
 
-    if (deck->start == 0){
-        deck->start = 51;
-    }
-    else{
-        deck->start = deck->start -1;
-    }
+    card->next = NULL;
 
     return card;
 }
 
-struct deck* randomizeDeck(struct deck *deck){
-    //Randomizes deck and starts it at zero
+struct deck* pushCard(struct deck *deck, struct card *card){
+    //adds card to front of deck
+    card->next = deck->head;
+    deck->head = card;
 
-    int newCardArray[52];
-    int deckSize = deck->deckLength; //initial size
-    int i;
-    int cardLoc, card;
+    if(deckEmpty(deck)){
+        deck->tail == card;
+    }
+}
 
- 
-    memset(newCardArray, 0, 52);
+struct deck* pushEndCard(struct deck *deck, struct card *card){
+    //adds card to end of deck
+    card->next = NULL;
 
-    for (i = 0; i < deckSize; i++){//randomizes the deck
-        cardLoc = randBetween(0,deck->deckLength);
-        cardLoc = (cardLoc + deck->start) % 52; //wraps around
-
-        if (cardLoc > deck->end && cardLoc < deck->start){
-            //throw error
-        }
-
-        newCardArray[i] = deck->cardArray[cardLoc]; //adds chosen card starting from 0
-
-        if (cardLoc != deck->end){//not nessesary if last card is chosen
-            deck->cardArray[cardLoc] = deck->cardArray[deck->end]//moves the last card to the location of the chosen one
-        }
-
-        if (deck->end == 0){//if end is zero sets to 51
-            deck->end = 51;
-        }
-        else{
-            deck->end = deck->end - 1;
-        }
-
-        deck->deckLength = deck->deckLength - 1;//lowers cardlength
+    if(deck->head == NULL){
+        deck->head == card;
+    }
+    else{
+        deck->tail->next = card;
     }
 
-    //fixes deck
-    memcpy(deck->cardArray, newCardArray, 52);//replaces cardArray with newCardArray
-    deck->start = 0;
-    deck->end = deckSize - 1;
-    deck->deckLength = deckSize;//sets deckLength to actual size
+    deck->tail = card;
+}
+
+struct deck* mergeDeck(struct deck *deck1, struct deck *deck2){
+    //merges deck2 into deck1
+
+
+    if (deckEmpty(deck1)){
+        deck1->head = deck2->head;
+    }
+    else{
+        deck1->tail->next = deck->head;
+    }
+
+    deck1->tail = deck2->tail;
+
+    deck2->head = NULL;
+    deck2->tail = NULL;
+}
+
+struct deck* switchDeck(struct deck *deck1, struct deck *deck2, struct deck *curDec){
+    //Switches deck to not current deck, curDec must be either deck1 or deck2
+
+    if (curDec == deck1){
+        curDec = deck2;
+    }
+    else if (curDec == deck2;){
+        curDec = deck1;
+    }
+    else{
+        abort();//crash
+    }
+}
+
+struct deck* randomizeDeck(struct deck *deck){
+    //Randomizes deck
+
+    int i, i2, deckLength, cardLoc;
+
+    struct card *card1, *card2;
+
+    deckLength = deckLength(deck);
+
+    for (i = 0; i < deckLength; i++){//randomizes the deck
+
+        //gets random card between i and deckLength
+        cardLoc = randBetween(0,deckLength-i); //i cards are already randomized
+
+        card1 = deck->head;
+
+        //Gets the cardLoc card
+        for (i2 = 0; i2 < cardLoc; i++){
+            if (card1==NULL){
+                abort();//causes crash I think
+            }
+            card2 = card1;
+            card1 = card->next;
+        }
+
+        //moves card to end of que
+        if (card1!= deck->tail){
+
+            if (card1 = deck->head){//if head makes next card head
+                deck->head = card1->next;
+            }
+            else{
+                card2->next = card1->next;
+            }
+
+            card1->next = NULL;
+        }
+    }
 
     return deck;
 }
 
 struct deck* freshDeck(){
-    struct deck *deck = malloc(sizeof(struct list));
-    deck->start = 0;
-    deck->end = 51;
-    deck->deckLength = 52;
+    //creates a fresh deck
 
-    int cardArray[52];
+    struct deck *deck = malloc(sizeof(struct list));
+    struct card *card;
     int i,i2;
+
+    deck->head = NULL;
+    deck->tail = NULL;
 
     for (i=0; i<4; i++){//creates a deck that is 0-12 four times
         for (i2=0; i<13; i++){
-            cardArray[i*13+i2]=i2
+            card = malloc(sizeof(struct card));
+            card->val = i2;
+
+            card->next = deck->head;
         }
     }
-    deck->cardArray = cardArray;
+    deck->tail=card;
+
+    return deck;
 }
 
 
@@ -107,20 +186,26 @@ int STACKTYPE = 1;
 int LOOSERFIRST = 0; // whether the loosers cards go first
 
 int warRound(struct deck *deck1, struct deck *deck2){
-    int card1;
-    int card2;
+    struct card *card1, *card2, *tempCard;
+    struct deck *temp1, *temp2, *temp;
 
-    int stackLength = min(deck1->deckLength, deck2->deckLength);//get smallest deck as it is max size
+    temp1 = malloc(sizeof(struct deck));
+    temp2 = malloc(sizeof(struct deck));
 
-    int stack[2][stackLength];
-    int resultStack[52]; //the stack the is returned
+    temp1->head = NULL;
+    temp2->head = NULL;
 
-    int warCount = 0;
-    int curWarLength = 0;
-    int warBurn = 3;
+    temp1->tail = NULL;
+    temp2->tail = NULL;
+    
+
+    int deckLength = min(deckLength(deck1), deckLength(deck2));//get smallest deck as it is max size
+
+    int warBurn = 3, earlyWarExit;
 
     int winner = -2;//0 for 1, 1 for 2
-    int stackUsed;
+
+    int cardUsed = 0;
 
     int i, i2, i3;
 
@@ -130,60 +215,155 @@ int warRound(struct deck *deck1, struct deck *deck2){
         card1 = popCard(deck1);
         card2 = popCard(deck2);
 
-        stackUsed ++;
+        pushEndCard(temp1, card1);
+        pushEndCard(temp2, card2);
 
-        stack[0][(warBurn+1)*warCount] = card1;
-        stack[1][(warBurn+1)*warCount] = card2;
+        //adds cards to deliminate aftter first card
+        tempCard = malloc(sizeof(struct card));
+        tempCard->val=-1;//-1 card after first card
+        pushEndCard(temp1, tempCard);
+        tempCard = malloc(sizeof(struct card));
+        tempCard->val=-1;//-1 card after first card
+        pushEndCard(temp2, tempCard);
 
-        if (card1 != card2){//not war
-            winner = (card1 < card2) ? 1 : 0; 
-            continue;
+        if (card1->val != card2->val){//not war
+            winner = (card1->val < card2->val) ? 1 : 0; 
+            break;
         }
 
         //war time
 
-        if(stackUsed == stackLength){//if used all cards and still tied
+        if(cardUsed >= deckLength){//if used all cards and still tied
             winner = -1;
-            continue;
+            break;
         }
 
+
+
         //burn baby burn
-        curWarLength = min(warBurn + 1, stackLength - ((warCount+1)*(warBurn+1)) - 1); //Can make last war burn less than 3
-        stackUsed += curWarLength-1;
-        for (i=0; i < curWarLength-1; i++){
-            stack[0][(warBurn+1)*warCount] = popCard(card1);
-            stack[1][(warBurn+1)*warCount] = popCard(card2);
+        earlyWarExit = 0;
+        for (i=0; i< warBurn; i++){
+            card1 = popCard(deck1);
+            card2 = popCard(deck2);
+
+            //if deck is empty dont add to que, have war
+            if (deckEmpty(deck1) || deckEmpty(deck2)){
+                earlyWarExit = 1;
+                break;
+            }
+
+            pushEndCard(temp1, card1);
+            pushEndCard(temp2, card2);
+        }
+
+        if (!earlyWarExit){
+            card1 = popCard(deck1);
+            card2 = popCard(deck2);
+        }
+
+        //Adds cards to delimate last card of war
+        tempCard = malloc(sizeof(struct card));
+        tempCard->val=-2;//-2 card before tail of war
+        pushEndCard(temp1, tempCard);
+        tempCard = malloc(sizeof(struct card));
+        tempCard->val=-2;//-2 card before tail of war
+        pushEndCard(temp2, tempCard);
+
+
+        pushEndCard(temp1, card1);
+        pushEndCard(temp2, card2);
+
+        //Adds cards after last card of war
+        tempCard = malloc(sizeof(struct card));
+        tempCard->val=-3;//-3 card after tail of war
+        pushEndCard(temp1, tempCard);
+        tempCard = malloc(sizeof(struct card));
+        tempCard->val=-3;//-3 card after tail of war
+        pushEndCard(temp2, tempCard);
+
+        if (card1->val != card2->val){//not war
+            winner = (card1->val < card2->val) ? 1 : 0; 
+            break;
         }
     }
 
     if (winner = -1){//tie
-        return winner;
+        return -1;
     }
+
+    //makes winner deck 1, looser deck2
+    //also makes it so that you should always take from temp1 first
+    //makes it so that no checks for winner and LOOSERFIRST happen later on
+    if (winner == 1){// if winner is deck2
+        temp = deck1;
+        deck1 = deck2;
+        deck2 = deck1;
+
+        if(!LOOSERFIRST){
+            temp = temp1;
+            temp1 = temp2;
+            temp2 = temp;
+        }
+
+        temp = NULL;
+    }
+
 
     switch (STACKTYPE){
     case 0:
         //random result stack
-        for (i=0; i<2; i++){
-            for (i2=0; i<stackUsed; i++){
-                resultStack[i*stackUsed + i2] = stack[(i+1)%2][i2]
+        temp = malloc(sizeof(struct deck));
+        temp->head=NULL;
+        temp->tail=NULL;
+
+        card1 = popCard(temp1);
+        card2 = popCard(temp2);
+
+        while(card1 != NULL){
+            if (card1->val < 0){
+                free(card1);
+                free(card2);
             }
+            else{
+                pushCard(card1, temp);
+                pushCard(card2, temp);
+            }
+
+            card1 = popCard(temp1);
+            card2 = popCard(temp2);
         }
 
-        struct deck temp;
-        temp.start = 0;
-        temp.end = stackUsed * 2 - 1;
-        temp.deckLength = stackUsed * 2;
-        temp.cardArray = resultStack; //changes to temp.cardArray change resultStack
-        randomizeDeck(*temp);
+        randomizeDeck(temp);
+        mergeDeck(deck1, temp);
+
+        free(temp);
         break;
 
     case 1:
         //result stack is one first stack then the second
 
-        for (i=0; i<2; i++){
-            for (i2=0; i<stackUsed; i++){
-                resultStack[i*stackUsed + i2] = stack[(winner+i+LOOSERFIRST)%2][i2]
+        card1 = popCard(temp1);
+        while(card1 != NULL){
+            if (card1->val < 0){
+                free(card1);
             }
+            else{
+                pushCardEnd(card1, deck1);
+            }
+
+            card1 = popCard(temp1);
+        }
+
+        card2 = popCard(temp2);
+        while(card2 != NULL){
+            if (card2->val < 0){
+                free(card2);
+            }
+            else{
+                pushCardEnd(card2, deck1);
+            }
+
+            card2 = popCard(temp2);
         }
         break;
     
@@ -191,19 +371,19 @@ int warRound(struct deck *deck1, struct deck *deck2){
         //result stack is first stack then second seperated by war
         // first from first stack, first from second stack, then all cards from war from first stack, then all cards from war from second stack, repeat
 
-        //first two cards
-        resultStack[0] = stack[(winner+LOOSERFIRST)%2][0];
-        resultStack[1] = stack[(winner+LOOSERFIRST+1)%2][0];//+1 to change stack
-
-        for(i=0; i < warCount; i++){
-            curWarLength = min(warBurn + 1, stackUsed - ((i+1)*(warBurn+1)) - 1);//finds if a war is less than warBurn + 1 long
-            for(i2; i< 2; i2++){
-                for(i3; i3 < curWarLength; i3++){
-                    //warCount*(warBurn+1) gives haow many cards are used in previous wars, the + 1 is for the first card being taken
-                    //the first two terms are *2 as it contains the cards from 2 decks, warLenght *i2 is to see if this if first or second time
-                    resultStack[(warCount*(warBurn+1) + 1)*2 + (curWarLength*i2) + i3] = stack[(winner+LOOSERFIRST+i2)%2][warCount*(warBurn+1) + 1 + i3]
-                }
+        temp = temp1;
+        
+        card1 = popCard(temp);
+        while(card1 != NULL){
+            if (card1->val < 0){//if comes in contact with a seperator frees it then switches
+                free(card1);
+                switchDeck(temp1, temp2, temp);
             }
+            else{
+                pushCardEnd(card1, deck1);
+
+            }
+            card1 = popCard(temp);
         }
         break;
     }
