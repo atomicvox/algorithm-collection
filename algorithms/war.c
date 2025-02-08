@@ -1,27 +1,28 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
 
-static inline int min(x,y){
+static inline int min(int x, int y){
     return (x < y) ? x : y;
 }
 
 int randBetween(int x, int y){
-    return x + (rand() % (y - x + 1))
+    return x + (rand() % (y - x + 1));
 }
 
 //switch to linked list for que
 struct deck {
     struct card *head;
     struct card *tail;
-}
+};
 
 struct card{
     int val;
     struct card *next;
-}
+};
 
 int deckEmpty(struct deck *deck){
-    return deck->head == NULL
+    return deck->head == NULL;
 }
 
 int deckLength(struct deck *deck){
@@ -31,7 +32,7 @@ int deckLength(struct deck *deck){
         return 0;
     }
 
-    while (card->next != NULL){
+    while (card != NULL){
         length ++;
         card = card->next;
     }
@@ -41,7 +42,7 @@ int deckLength(struct deck *deck){
 
 struct card* popCard(struct deck *deck){
     //pops first card
-    int card;
+    struct card *card;
 
     if (deckEmpty(deck)){
         return NULL;
@@ -70,7 +71,7 @@ struct deck* pushCard(struct deck *deck, struct card *card){
     }
 }
 
-struct deck* pushEndCard(struct deck *deck, struct card *card){
+struct deck* pushCardEnd(struct deck *deck, struct card *card){
     //adds card to end of deck
     card->next = NULL;
 
@@ -92,7 +93,7 @@ struct deck* mergeDeck(struct deck *deck1, struct deck *deck2){
         deck1->head = deck2->head;
     }
     else{
-        deck1->tail->next = deck->head;
+        deck1->tail->next = deck2->head;
     }
 
     deck1->tail = deck2->tail;
@@ -107,7 +108,7 @@ struct deck* switchDeck(struct deck *deck1, struct deck *deck2, struct deck *cur
     if (curDec == deck1){
         curDec = deck2;
     }
-    else if (curDec == deck2;){
+    else if (curDec == deck2){
         curDec = deck1;
     }
     else{
@@ -118,16 +119,16 @@ struct deck* switchDeck(struct deck *deck1, struct deck *deck2, struct deck *cur
 struct deck* randomizeDeck(struct deck *deck){
     //Randomizes deck
 
-    int i, i2, deckLength, cardLoc;
+    int i, i2, dLength, cardLoc;
 
     struct card *card1, *card2;
 
-    deckLength = deckLength(deck);
+    dLength = deckLength(deck);
 
-    for (i = 0; i < deckLength; i++){//randomizes the deck
+    for (i = 0; i < dLength; i++){//randomizes the deck
 
         //gets random card between i and deckLength
-        cardLoc = randBetween(0,deckLength-i); //i cards are already randomized
+        cardLoc = randBetween(0,dLength-i); //i cards are already randomized
 
         card1 = deck->head;
 
@@ -137,7 +138,7 @@ struct deck* randomizeDeck(struct deck *deck){
                 abort();//causes crash I think
             }
             card2 = card1;
-            card1 = card->next;
+            card1 = card1->next;
         }
 
         //moves card to end of que
@@ -160,7 +161,7 @@ struct deck* randomizeDeck(struct deck *deck){
 struct deck* freshDeck(){
     //creates a fresh deck
 
-    struct deck *deck = malloc(sizeof(struct list));
+    struct deck *deck = malloc(sizeof(struct deck));
     struct card *card;
     int i,i2;
 
@@ -168,16 +169,42 @@ struct deck* freshDeck(){
     deck->tail = NULL;
 
     for (i=0; i<4; i++){//creates a deck that is 0-12 four times
-        for (i2=0; i<13; i++){
+        for (i2=0; i2<13; i2++){
             card = malloc(sizeof(struct card));
-            card->val = i2;
+            card->val = i2+2;
 
             card->next = deck->head;
+            deck->head = card;
+            printf("%d\n", i*13 + i2 + 1);
         }
     }
     deck->tail=card;
 
     return deck;
+}
+
+struct deck* splitDeck(struct deck *deck){
+    struct deck *returnDeck = malloc(sizeof(struct deck));
+    int dlength = deckLength(deck);
+    int i;
+
+    for (i =0; i<dlength/2; i++){
+        pushCard(returnDeck, popCard(deck));
+    }
+
+    return returnDeck;
+}
+
+struct deck* clearDeck(struct deck *deck){
+    struct card *card1, *card2;
+
+    card1 = deck->head;
+    while (card1 != NULL){
+        card2 = card1;
+        card1 = card1->next;
+
+        free(card2);
+    }
 }
 
 
@@ -199,7 +226,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
     temp2->tail = NULL;
     
 
-    int deckLength = min(deckLength(deck1), deckLength(deck2));//get smallest deck as it is max size
+    int dLength = min(deckLength(deck1), deckLength(deck2));//get smallest deck as it is max size
 
     int warBurn = 3, earlyWarExit;
 
@@ -215,16 +242,16 @@ int warRound(struct deck *deck1, struct deck *deck2){
         card1 = popCard(deck1);
         card2 = popCard(deck2);
 
-        pushEndCard(temp1, card1);
-        pushEndCard(temp2, card2);
+        pushCardEnd(temp1, card1);
+        pushCardEnd(temp2, card2);
 
         //adds cards to deliminate aftter first card
         tempCard = malloc(sizeof(struct card));
         tempCard->val=-1;//-1 card after first card
-        pushEndCard(temp1, tempCard);
+        pushCardEnd(temp1, tempCard);
         tempCard = malloc(sizeof(struct card));
         tempCard->val=-1;//-1 card after first card
-        pushEndCard(temp2, tempCard);
+        pushCardEnd(temp2, tempCard);
 
         if (card1->val != card2->val){//not war
             winner = (card1->val < card2->val) ? 1 : 0; 
@@ -233,7 +260,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
         //war time
 
-        if(cardUsed >= deckLength){//if used all cards and still tied
+        if(cardUsed >= dLength){//if used all cards and still tied
             winner = -1;
             break;
         }
@@ -252,8 +279,8 @@ int warRound(struct deck *deck1, struct deck *deck2){
                 break;
             }
 
-            pushEndCard(temp1, card1);
-            pushEndCard(temp2, card2);
+            pushCardEnd(temp1, card1);
+            pushCardEnd(temp2, card2);
         }
 
         if (!earlyWarExit){
@@ -264,22 +291,22 @@ int warRound(struct deck *deck1, struct deck *deck2){
         //Adds cards to delimate last card of war
         tempCard = malloc(sizeof(struct card));
         tempCard->val=-2;//-2 card before tail of war
-        pushEndCard(temp1, tempCard);
+        pushCardEnd(temp1, tempCard);
         tempCard = malloc(sizeof(struct card));
         tempCard->val=-2;//-2 card before tail of war
-        pushEndCard(temp2, tempCard);
+        pushCardEnd(temp2, tempCard);
 
 
-        pushEndCard(temp1, card1);
-        pushEndCard(temp2, card2);
+        pushCardEnd(temp1, card1);
+        pushCardEnd(temp2, card2);
 
         //Adds cards after last card of war
         tempCard = malloc(sizeof(struct card));
         tempCard->val=-3;//-3 card after tail of war
-        pushEndCard(temp1, tempCard);
+        pushCardEnd(temp1, tempCard);
         tempCard = malloc(sizeof(struct card));
         tempCard->val=-3;//-3 card after tail of war
-        pushEndCard(temp2, tempCard);
+        pushCardEnd(temp2, tempCard);
 
         if (card1->val != card2->val){//not war
             winner = (card1->val < card2->val) ? 1 : 0; 
@@ -325,8 +352,8 @@ int warRound(struct deck *deck1, struct deck *deck2){
                 free(card2);
             }
             else{
-                pushCard(card1, temp);
-                pushCard(card2, temp);
+                pushCard(temp, card1);
+                pushCard(temp, card2);
             }
 
             card1 = popCard(temp1);
@@ -348,7 +375,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
                 free(card1);
             }
             else{
-                pushCardEnd(card1, deck1);
+                pushCardEnd(deck1, card1);
             }
 
             card1 = popCard(temp1);
@@ -360,7 +387,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
                 free(card2);
             }
             else{
-                pushCardEnd(card2, deck1);
+                pushCardEnd(deck1, card2);
             }
 
             card2 = popCard(temp2);
@@ -380,11 +407,28 @@ int warRound(struct deck *deck1, struct deck *deck2){
                 switchDeck(temp1, temp2, temp);
             }
             else{
-                pushCardEnd(card1, deck1);
+                pushCardEnd(deck1, card1);
 
             }
             card1 = popCard(temp);
         }
         break;
     }
+}
+
+int main(int argc, char *argv[]) {
+    struct deck *deck1 = freshDeck();
+    struct deck *deck2 = splitDeck(deck1);
+
+    printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
+    printf("STACKTYPE: %d, LOOSERFIRST: %d\n", STACKTYPE, LOOSERFIRST);
+
+    warRound(deck1, deck2);
+
+    printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
+
+    clearDeck(deck1);
+    clearDeck(deck2);
+    free(deck1);
+    free(deck2);
 }
