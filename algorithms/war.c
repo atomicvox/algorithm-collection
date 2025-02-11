@@ -254,9 +254,11 @@ int LOOSERFIRST = 0; // whether the loosers cards go first
 int warRound(struct deck *deck1, struct deck *deck2){
     struct card *card1, *card2, *tempCard;
     struct deck *temp1, *temp2, *temp;
+    struct warGameRound curRound;
 
     temp1 = malloc(sizeof(struct deck));
     temp2 = malloc(sizeof(struct deck));
+    curRound = malloc(sizeof(struct deck));
 
     temp1->head = NULL;
     temp2->head = NULL;
@@ -270,14 +272,14 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
     int warBurn = 3, earlyWarExit;
 
-    int winner = -2;//1 for 1, 2 for 2
+    curRound->winner = -2;//1 for 1, 2 for 2
 
-    int cardUsed = 0;
+    int curRound->cardUsed = 0;
 
     int i, i2, i3;
 
     //actual thing
-    while (winner == -2){//winner = -2 means no winner decided
+    while (curRound->winner == -2){//winner = -2 means no winner decided
         card1 = popCard(deck1);
         card2 = popCard(deck2);
 
@@ -294,7 +296,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
         pushCardEnd(temp2, tempCard);
 
         if (card1->val != card2->val){//not war
-            winner = (card1->val < card2->val) ? 2 : 1; 
+            curRound->winner = (card1->val < card2->val) ? 2 : 1; 
             //printf("Winner: %d\n", winner);
             break;
         }
@@ -303,8 +305,8 @@ int warRound(struct deck *deck1, struct deck *deck2){
         //War time
         //
 
-        if(cardUsed >= dLength){//if used all cards and still tied
-            winner = -1;
+        if(curRound->cardUsed >= dLength){//if used all cards and still tied
+            curRound->winner = -1;
             break;
         }
 
@@ -352,19 +354,19 @@ int warRound(struct deck *deck1, struct deck *deck2){
         pushCardEnd(temp2, tempCard);
 
         if (card1->val != card2->val){
-            winner = (card1->val < card2->val) ? 2 : 1; 
+            curRound->winner = (card1->val < card2->val) ? 2 : 1; 
             break;
         }
     }
 
-    if (winner == -1){//tie and has run through all cards
-        return -1;
+    if (curRound->winner == -1){//tie and has run through all cards
+        return curRound;
     }
 
     //makes winner deck 1, looser deck2
     //also makes it so that you should always take from temp1 first
     //makes it so that no checks for winner and LOOSERFIRST happen later on
-    if (winner == 2){// if winner is deck2
+    if (curRound->winner == 2){// if winner is deck2
         temp = deck1;
         deck1 = deck2;
         deck2 = deck1;
@@ -464,7 +466,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
         break;
     }
 
-    return winner;
+    return curRound;
 }
 
 
@@ -476,12 +478,15 @@ struct warGame{
 
 struct warGame* fullGame(struct deck *deck1, struct deck *deck2){
     struct warGame *curGame = malloc(sizeof(struct warGame));
+    struct warGameRound *curRound;
     curGame->rounds = 0;
     curGame->winner = -1;
 
     while (!(deckEmpty(deck1) || deckEmpty(deck2))){
-        curGame->winner = warRound(deck1, deck2);
+        curRound = warRound(deck1, deck2);
+        curGame->winner = curRound->winner;
         curGame->rounds ++;
+        free(curRound);
     }
 
     return curGame;
