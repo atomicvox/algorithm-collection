@@ -245,13 +245,19 @@ struct warGameRound {
     int winner;
     int warCount;
     int cardGain;
+
+    struct warGameRound *next; //for use for ll
+};
+
+enum stackType{
+    random, fullStack, interWoven
 };
 
 //how the stack is created
-int STACKTYPE = 1;
+enum stackType STACKTYPE = fullStack;
 int LOOSERFIRST = 0; // whether the loosers cards go first
 
-int warRound(struct deck *deck1, struct deck *deck2){
+struct warGameRound *warRound(struct deck *deck1, struct deck *deck2){
     struct card *card1, *card2, *tempCard;
     struct deck *temp1, *temp2, *temp;
     struct warGameRound curRound;
@@ -272,6 +278,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
     int warBurn = 3, earlyWarExit;
 
+    curRound->warCount = 0;
     curRound->winner = -2;//1 for 1, 2 for 2
 
     int curRound->cardUsed = 0;
@@ -285,6 +292,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
         pushCardEnd(temp1, card1);
         pushCardEnd(temp2, card2);
+        curRound->cardUsed++;
 
         //adds cards to deliminate aftter first card
         tempCard = malloc(sizeof(struct card));
@@ -305,11 +313,14 @@ int warRound(struct deck *deck1, struct deck *deck2){
         //War time
         //
 
+        curRound->warCount++;
+
         if(curRound->cardUsed >= dLength){//if used all cards and still tied
             curRound->winner = -1;
+            curRound->deck1Length = deckLength(deck1);
+            curRound->deck2Length = deckLength(deck2);
             break;
         }
-
 
 
         //burn baby burn
@@ -326,11 +337,13 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
             pushCardEnd(temp1, card1);
             pushCardEnd(temp2, card2);
+            curRound->cardUsed++;
         }
 
         if (!earlyWarExit){
             card1 = popCard(deck1);
             card2 = popCard(deck2);
+            curRound->cardUsed++;
         }
 
         //Adds cards to delimate last card of war
@@ -344,6 +357,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
         pushCardEnd(temp1, card1);
         pushCardEnd(temp2, card2);
+        curRound->cardUsed++;
 
         //Adds cards after last card of war
         tempCard = malloc(sizeof(struct card));
@@ -360,6 +374,8 @@ int warRound(struct deck *deck1, struct deck *deck2){
     }
 
     if (curRound->winner == -1){//tie and has run through all cards
+        curRound->deck1Length = deckLength(deck1);
+        curRound->deck2Length = deckLength(deck2);
         return curRound;
     }
 
@@ -386,7 +402,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
 
 
     switch (STACKTYPE){
-    case 0:
+    case random:
         //random result stack
         temp = malloc(sizeof(struct deck));
         temp->head=NULL;
@@ -415,7 +431,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
         free(temp);
         break;
 
-    case 1:
+    case fullStack:
         //result stack is one first stack then the second
 
 
@@ -445,7 +461,7 @@ int warRound(struct deck *deck1, struct deck *deck2){
         }
         break;
     
-    case 2:
+    case interWoven:
         //result stack is first stack then second seperated by war
         // first from first stack, first from second stack, then all cards from war from first stack, then all cards from war from second stack, repeat
 
@@ -466,6 +482,8 @@ int warRound(struct deck *deck1, struct deck *deck2){
         break;
     }
 
+    curRound->deck1Length = deckLength(deck1);
+    curRound->deck2Length = deckLength(deck2);
     return curRound;
 }
 
@@ -474,19 +492,48 @@ int warRound(struct deck *deck1, struct deck *deck2){
 struct warGame{
     int winner;
     int rounds;
+
+    struct warGameRound *head;
+    struct warGameRound *tail;
 };
 
+void clearWarGame(struct warGame *warGame){
+    struct warGameRound *curRound = warGameRound->head;
+    struct warGameRound *prev;
+
+    while (curRound != NULL){
+        prev = curRound;
+        curRound = curRound->next;
+        free(prev);
+    }
+}
+
+struct warGame* addRound(struct warGame *warGame, struct warGameRound *round){
+    if (warGame->head == NULL){
+        warGame->head = round;
+    }
+    else{
+        warGame->tail->next = round;
+    }
+
+    round->next = NULL;
+    warGame->tail = round;
+}
+
 struct warGame* fullGame(struct deck *deck1, struct deck *deck2){
-    struct warGame *curGame = malloc(sizeof(struct warGame));
+    struct warGame *curGame = malloc(sizeof(struct warGame)); //one round of war
     struct warGameRound *curRound;
     curGame->rounds = 0;
     curGame->winner = -1;
+
+    warGame->head = NULL;
+    warGame->tail = NULL;
 
     while (!(deckEmpty(deck1) || deckEmpty(deck2))){
         curRound = warRound(deck1, deck2);
         curGame->winner = curRound->winner;
         curGame->rounds ++;
-        free(curRound);
+        addRound(curGame, curRound);
     }
 
     return curGame;
@@ -503,12 +550,16 @@ int main(int argc, char *argv[]) {
     printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
     printf("STACKTYPE: %d, LOOSERFIRST: %d\n", STACKTYPE, LOOSERFIRST);
 
+    STACKTYPE = fullStack;//how are the stacks merged
+    LOOSERFIRST = 0;//Wheather the looser is put first
+
     game1 = fullGame(deck1, deck2);
 
     printf("Winner: %d, Deck1: %d, Deck2: %d, NumRounds: %d\n", game1->winner, deckLength(deck1), deckLength(deck2), game1->rounds);
 
     clearDeck(deck1);
     clearDeck(deck2);
+    clearWarGame(game1);
     free(deck1);
     free(deck2);
     free(game1);
