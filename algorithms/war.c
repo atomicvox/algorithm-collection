@@ -27,16 +27,22 @@ int deckEmpty(struct deck *deck){
 
 int deckLength(struct deck *deck){
     int length = 0;
-    struct card *card = deck->head;
-    if (deckEmpty(deck)){
+    struct card *card;
+
+    if (deck == NULL || deckEmpty(deck)){
         return 0;
     }
 
+    card = deck->head;
+
     while (card != NULL){
+        //printf("%d,%d |", length, card->next == NULL);
         length ++;
         card = card->next;
     }
 
+
+    //printf("\n");
     return length;
 }
 
@@ -241,16 +247,20 @@ void printDeck(struct deck *deck){
 //for use in other stuff if I get to it
 struct warGameRound {
     int deck1Length;
-    int deck2Lenght;
+    int deck2Length;
     int winner;
     int warCount;
-    int cardGain;
+    int cardUsed;
 
     struct warGameRound *next; //for use for ll
 };
 
 enum stackType{
-    random, fullStack, interWoven
+    randomStack, fullStack, interWoven
+};
+
+static char *stackTypeStrings[] = {
+    "randomStack", "fullStack", "interWoven"
 };
 
 //how the stack is created
@@ -260,11 +270,11 @@ int LOOSERFIRST = 0; // whether the loosers cards go first
 struct warGameRound *warRound(struct deck *deck1, struct deck *deck2){
     struct card *card1, *card2, *tempCard;
     struct deck *temp1, *temp2, *temp;
-    struct warGameRound curRound;
+    struct warGameRound *curRound;
 
     temp1 = malloc(sizeof(struct deck));
     temp2 = malloc(sizeof(struct deck));
-    curRound = malloc(sizeof(struct deck));
+    curRound = malloc(sizeof(struct warGameRound));
 
     temp1->head = NULL;
     temp2->head = NULL;
@@ -281,7 +291,7 @@ struct warGameRound *warRound(struct deck *deck1, struct deck *deck2){
     curRound->warCount = 0;
     curRound->winner = -2;//1 for 1, 2 for 2
 
-    int curRound->cardUsed = 0;
+    curRound->cardUsed = 0;
 
     int i, i2, i3;
 
@@ -402,7 +412,7 @@ struct warGameRound *warRound(struct deck *deck1, struct deck *deck2){
 
 
     switch (STACKTYPE){
-    case random:
+    case randomStack:
         //random result stack
         temp = malloc(sizeof(struct deck));
         temp->head=NULL;
@@ -498,17 +508,23 @@ struct warGame{
 };
 
 void clearWarGame(struct warGame *warGame){
-    struct warGameRound *curRound = warGameRound->head;
-    struct warGameRound *prev;
+    //printf("%d\n", warGame->head == NULL);
+    struct warGameRound *curRound = warGame->head;
+    struct warGameRound *prev = NULL;
 
-    while (curRound != NULL){
+    //while (curRound != NULL){
+        //printf("%d|", curRound->next == NULL);
         prev = curRound;
         curRound = curRound->next;
         free(prev);
-    }
+        prev = NULL;
+    //}
 }
 
 struct warGame* addRound(struct warGame *warGame, struct warGameRound *round){
+    //Adds a round to end of list
+    round->next = NULL;
+
     if (warGame->head == NULL){
         warGame->head = round;
     }
@@ -516,27 +532,41 @@ struct warGame* addRound(struct warGame *warGame, struct warGameRound *round){
         warGame->tail->next = round;
     }
 
-    round->next = NULL;
+
     warGame->tail = round;
 }
 
 struct warGame* fullGame(struct deck *deck1, struct deck *deck2){
-    struct warGame *curGame = malloc(sizeof(struct warGame)); //one round of war
+    struct warGame *curGame = malloc(sizeof(struct warGame)); //one game of war
     struct warGameRound *curRound;
     curGame->rounds = 0;
     curGame->winner = -1;
 
-    warGame->head = NULL;
-    warGame->tail = NULL;
+    curGame->head = NULL;
+    curGame->tail = NULL;
 
     while (!(deckEmpty(deck1) || deckEmpty(deck2))){
         curRound = warRound(deck1, deck2);
         curGame->winner = curRound->winner;
         curGame->rounds ++;
         addRound(curGame, curRound);
+        //printf("%d|", curRound->next == NULL);
+        curRound = NULL;
     }
 
     return curGame;
+}
+
+void printGame (struct warGame* game){
+    struct warGameRound *round = game->head;
+    int i = 0;
+
+    while (round != NULL){
+        //printf("%d,", i);
+        i++;
+        round = round->next;
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -547,19 +577,22 @@ int main(int argc, char *argv[]) {
     deck1 = freshDeck();
     deck2 = splitDeck(deck1);
 
-    printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
-    printf("STACKTYPE: %d, LOOSERFIRST: %d\n", STACKTYPE, LOOSERFIRST);
-
     STACKTYPE = fullStack;//how are the stacks merged
     LOOSERFIRST = 0;//Wheather the looser is put first
+
+    printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
+    printf("STACKTYPE: %s, LOOSERFIRST: %d\n", stackTypeStrings[STACKTYPE], LOOSERFIRST);
 
     game1 = fullGame(deck1, deck2);
 
     printf("Winner: %d, Deck1: %d, Deck2: %d, NumRounds: %d\n", game1->winner, deckLength(deck1), deckLength(deck2), game1->rounds);
 
+    //printGame(game1);
+
     clearDeck(deck1);
     clearDeck(deck2);
     clearWarGame(game1);
+
     free(deck1);
     free(deck2);
     free(game1);
