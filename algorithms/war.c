@@ -507,20 +507,6 @@ struct warGame{
     struct warGameRound *tail;
 };
 
-void clearWarGame(struct warGame *warGame){
-    //printf("%d\n", warGame->head == NULL);
-    struct warGameRound *curRound = warGame->head;
-    struct warGameRound *prev = NULL;
-
-    //while (curRound != NULL){
-        //printf("%d|", curRound->next == NULL);
-        prev = curRound;
-        curRound = curRound->next;
-        free(prev);
-        prev = NULL;
-    //}
-}
-
 struct warGame* addRound(struct warGame *warGame, struct warGameRound *round){
     //Adds a round to end of list
     round->next = NULL;
@@ -569,32 +555,53 @@ void printGame (struct warGame* game){
     printf("\n");
 }
 
+void clearWarGame(struct warGame *warGame){
+    //printf("%d\n", warGame->head == NULL);
+    struct warGameRound *curRound = warGame->head;
+    struct warGameRound *prev = NULL;
+
+    while (curRound != NULL){
+        //printf("%d|", curRound->next == NULL);
+        prev = curRound;
+        curRound = curRound->next;
+        free(prev);
+        prev = NULL;
+    }
+}
+
 int main(int argc, char *argv[]) {
     struct deck *deck1;
     struct deck *deck2;
     struct warGame *game1;
+    int i;
+    int numGames = 1;
 
-    deck1 = freshDeck();
-    deck2 = splitDeck(deck1);
+    for (i=0; i< numGames; i++){
+        deck1 = freshDeck();
+        randomizeDeck(deck1);
+        deck2 = splitDeck(deck1);
+    
+        STACKTYPE = fullStack;//how are the stacks merged
+        LOOSERFIRST = 0;//Wheather the looser is put first
+    
+        printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
+        printf("STACKTYPE: %s, LOOSERFIRST: %d\n", stackTypeStrings[STACKTYPE], LOOSERFIRST);
+    
+        game1 = fullGame(deck1, deck2);
+    
+        printf("Winner: %d, Deck1: %d, Deck2: %d, NumRounds: %d\n", game1->winner, deckLength(deck1), deckLength(deck2), game1->rounds);
+    
+        //printGame(game1);
+    
+        clearDeck(deck1);
+        clearDeck(deck2);
+        clearWarGame(game1);
+    
+        free(deck1);
+        free(deck2);
+        free(game1);
+    }
 
-    STACKTYPE = fullStack;//how are the stacks merged
-    LOOSERFIRST = 0;//Wheather the looser is put first
 
-    printf("Deck1: %d, Deck2: %d \n", deckLength(deck1), deckLength(deck2));
-    printf("STACKTYPE: %s, LOOSERFIRST: %d\n", stackTypeStrings[STACKTYPE], LOOSERFIRST);
-
-    game1 = fullGame(deck1, deck2);
-
-    printf("Winner: %d, Deck1: %d, Deck2: %d, NumRounds: %d\n", game1->winner, deckLength(deck1), deckLength(deck2), game1->rounds);
-
-    //printGame(game1);
-
-    clearDeck(deck1);
-    clearDeck(deck2);
-    clearWarGame(game1);
-
-    free(deck1);
-    free(deck2);
-    free(game1);
 
 }

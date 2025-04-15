@@ -53,5 +53,5 @@ dkms.conf
 
 # other
 yellowstoneAlg.txt
-fibanachi.txt
+fibonacci.txt
 .vscode/
