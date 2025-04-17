@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     double timeTaken;
     struct timeval start, stop;
     int max = 100, i, print_last = 0;
-    struct infNum *infNum1 = infNum_Create(), *infNum2 = infNum_Create(), *infNum3;
+    struct infNum *infNum1 = infNum_Create(base), *infNum2 = infNum_Create(base), *infNum3;
     char filename[] = "fibonacci.txt";
     FILE *fptr;
 
