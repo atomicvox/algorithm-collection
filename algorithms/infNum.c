@@ -146,6 +146,10 @@ int list_length(struct infNum *infNum){
 void infNum_add_node(struct infNum *infNum, short int num){
     //adds a node with num of num at end of list
 
+    if (infNum->numType != base){
+        printf("Added using wrong add_node type");
+        return;
+    }
 
     struct numNode *numNode = malloc(sizeof(struct numNode));
     numNode->next = NULL;
@@ -169,6 +173,32 @@ void infNum_add_node(struct infNum *infNum, short int num){
         infNum->sign = 1;
         numNode->num = num;
     }
+}
+
+void infNum_add_node_full(struct infNum *infNum, uint64_t num){
+    //adds a node with num of num at end of list
+
+    if (infNum->numType != new){
+        printf("Added using wrong add_node type");
+        return;
+    }
+
+    struct numNodeFull *numNode = malloc(sizeof(struct numNodeFull));
+    numNode->next = NULL;
+    if (list_empty(infNum)){
+        infNum->first = numNode;
+        infNum->last = numNode;
+        numNode->previous = NULL;
+    }
+    else{
+        numNode->previous = infNum->last;
+        infNum->last->next = numNode;
+        infNum->last = numNode;
+    }
+
+    infNum->sign = 1;
+    numNode->num = num;
+
 }
 
 void infNum_clean(struct infNum *infNum){
@@ -273,35 +303,102 @@ struct infNum *infNum_add (struct infNum *num1, struct infNum *num2) {
         struct infNum *list3 = infNum_Create(new);
         uint64_t num, num1, num2;
         uint64_t carry = 0;
-        short int carrySign = 1;
+        short int carryTemp=0;
+        short int carrySign=1, numSign=1;
         struct numNodeFull *it1 = num1->first, *it2 = num2->first;
 
         while (it1 != NULL || it2 != NULL){
+            num = carry;
+            carryTemp = 0;
 
+            //if negative carry
             if (carrySign == -1){
-                num = ~carry + 1;//negates it
-            }
-            else {
-                num = carry;
+                num = ~num + 1;
             }
 
-            if (it1->sign == -1 && it1 != NULL){
-                num += ~(it1->num) + 1;//negates it
-                it1 = it1->next;
-            }
-            else if (it1 != NULL){
-                num += (it1->num);
-                it1 = it1->next;
+            if (it1 != NULL){
+
+                if (num1->sign == -1){
+                    num += ~it1->num + 1;
+
+                    //wierd
+                    //as it is adding compliments it will overflow naturally
+                    //one can check for overflow using normal methods, must just use compliment
+                    if (carrySign == -1 && (~num+1) < it1->num){
+                        carryTemp += -1;
+                    }
+                    //if adding positive to negative and getting negative number effectivly underflow
+                    else if(carrySign != -1 && (~num+1) < it1->num){
+                        carryTemp += -1;
+                    }
+                }
+                else{
+                    num += it1->num;
+
+                    //when dealing with negatives check compliment
+                    if (carrySign == -1 && (~num+1) < it1->num){
+                        carryTemp += -1;
+                    }
+
+                    //using != -1 so it can be copy pasted to part below
+                    if (carrySign != -1 && num < it1->num){
+                        carryTemp += 1;
+                    }
+
+                }
+                it1= it1->next;
             }
 
-            if (it2->sign == -1 && it2 != NULL){
-                num += ~(it2->num) + 1;//negates it
-                it2 = it2->next;
+
+
+            if (num2->sign == -1){
+                num += ~it2->num + 1;
+
+                //wierd
+                //as it is adding compliments it will overflow naturally
+                //one can check for overflow using normal methods, must just use compliment
+                if (carryTemp == -1 && (~num+1) < it2->num){
+                    carryTemp += -1;
+                }
+                //if adding positive to negative and getting negative number effectivly underflow
+                else if(carryTemp != -1 && (~num+1) < it2->num){
+                    carryTemp += -1;
+                }
             }
-            else if (it2 != NULL){
-                num += (it2->num);
-                it2 = it2->next;
+            else{
+                num += it2->num;
+
+                //when dealing with negatives check compliment
+                if (carryTemp == -1 && (~num+1) < it2->num){
+                    carryTemp += -1;
+                }
+
+                //using != -1 so it can be copy pasted to part below
+                if (carryTemp != -1 && num < it2->num){
+                    carryTemp += 1;
+                }
+
             }
+            it2= it2->next;
+
+
+            
+            //turns carrTemp into carry and sign
+            if (carryTemp == -1){
+                num  = ~num + 1;
+                carry = 1;
+                carrySign = -1;
+            }
+            else{
+                carry = carryTemp;
+                carrySign = 1;
+            }
+
+            //adds node
+            //ADD NEW ADD_NODE
+            //infNum_add_node(list3, num);
+
+
         }
 
         break;
