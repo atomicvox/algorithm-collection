@@ -63,17 +63,14 @@ void infNum_clear(struct infNum *infNum){
         }
 
         iterrator = infNum->first;
-        while (!list_empty(infNum)){
-            if (iterrator != infNum->last){
-                iterrator = iterrator->next;
-                free(iterrator->previous);
-            }
-            else{
-                free(iterrator);
-                infNum->first = NULL;
-                infNum->last = NULL;
-            }
+        while (iterrator != NULL){
+            iterrator = iterrator->next;
+            free(iterrator->previous);
+
         }
+
+        infNum->first = NULL;
+        infNum->last = NULL;
         break;
 
     case new:
@@ -85,17 +82,13 @@ void infNum_clear(struct infNum *infNum){
         }
 
         iterrator = infNum->first;
-        while (!list_empty(infNum)){
-            if (iterrator != infNum->last){
-                iterrator = iterrator->next;
-                free(iterrator->previous);
-            }
-            else{
-                free(iterrator);
-                infNum->first = NULL;
-                infNum->last = NULL;
-            }
+        while (iterrator != NULL){
+            iterrator = iterrator->next;
+            free(iterrator->previous);
         }
+
+        infNum->first = NULL;
+        infNum->last = NULL;
         break;
 
     }
@@ -204,8 +197,7 @@ void infNum_add_node_full(struct infNum *infNum, uint64_t num){
 void infNum_clean(struct infNum *infNum){
     //removes all leading nodes that are zero
 
-    switch (infNum->numType)
-    {
+    switch (infNum->numType){
     case base:
         struct numNode *iterrator = infNum->last;
 
@@ -231,7 +223,34 @@ void infNum_clean(struct infNum *infNum){
 
 }
 
-struct infNum *infNum_add (struct infNum *num1, struct infNum *num2) {
+struct infNum *infNum_copy(struct infNum* num){
+    //Makes a deep copy of num
+    struct infNum *copy = malloc(sizeof(struct infNum));
+
+    switch (num->numType){
+    case base:
+        struct numNode *iterrator = infNum->first;
+
+        while (iterrator != NULL){
+            infNum_add_node(copy, iterrator->num);
+            iterrator = iterrator->next;
+        }
+        
+        break;
+    
+    case new:
+        struct numNodeFull *iterrator = infNum->first;
+
+        while (iterrator != NULL){
+            infNum_add_node_full(copy, iterrator->num);
+            iterrator = iterrator->next;
+        }
+
+        break;
+    }
+}
+
+struct infNum *infNum_add(struct infNum *num1, struct infNum *num2) {
     //adds two infNums
     //retruns num3 which is 1 plus the other
 
@@ -439,6 +458,47 @@ struct infNum *infNum_subtract (struct infNum *num1, struct infNum *num2) {
 }
 
 
+//Chatgpt
+uint64_t div128by64(uint64_t hi, uint64_t lo, uint64_t divisor, uint64_t *remainder) {
+    uint64_t q1, r1, q2, r2;
+    uint64_t shift_hi = hi % divisor;
+    
+    // Divide hi first
+    q1 = hi / divisor;
+    
+    // Compose upper 64 bits of the new 128-bit value
+    __uint64_t upper = (shift_hi << 32) | (lo >> 32);
+    q2 = upper / divisor;
+    r1 = upper % divisor;
+
+    // Lower 64 bits
+    uint64_t lower = (r1 << 32) | (lo & 0xFFFFFFFF);
+    uint64_t q3 = lower / divisor;
+    r2 = lower % divisor;
+
+    if (remainder) *remainder = r2;
+
+    return (q1 << 64) | (q2 << 32) | q3;
+}
+
+
+struct infNum *infNum_divMod(struct infNum *num, uint64_t *remainder, uint64_t divisor){
+    if (divisor == 0){
+        return;
+    }
+    if (list_empty(num)){
+        return;
+    }
+
+    struct numNodeFull iterrator = num->last;
+
+    while (iterrator != NULL){
+        uint64_t quotient = div128by64(&remainder, iterrator->num, divisor, remainder);
+        iterrator = iterrator->previous;
+    }
+}
+
+
 void fprint_infNum (struct infNum *infNum, FILE *fptr){
     //prints an infNum to a file
 
@@ -473,6 +533,31 @@ void fprint_infNum (struct infNum *infNum, FILE *fptr){
         break;
     
     case new:
+        char num[20 * list_length(infNum)]; //each is approximatly 20 long
+        int numLength = 0, i;
+        uint64_t remainder;
+
+        struct infNum *copy = infNum_copy(infNum);
+
+        while (!infNum_isZero(copy)){
+            infNum_divMod(copy, &remainder, 10);
+            num[numLength] = remainder + '0'; //convert to char
+            numLength++;
+        }
+
+
+        //if sign is negative adds - sign
+        if (copy->sign == -1){
+            fprintf(fptr, "%s", "-");
+        }
+
+        for (i = 0; i < numLength; i++){
+            fprintf(fptr, "%s", num[i]);
+        }
+
+        infNum_clear(copy);
+        free(copy);
+
         break;
     }
 
@@ -529,4 +614,34 @@ int infNums_equal(struct infNum *infNum1, struct infNum *infNum2){
     }
 
 
+}
+
+int infNum_isZero(struct infNum *num){
+    switch (num->numType){
+    case base:
+        struct numNode *itterator = num->first;
+
+        while (itterator != NULL){
+            if (itterator->num != 0){
+                return 0;
+            }
+            itterator = itterator->next;
+        }
+
+        return 1;
+        break;
+    
+    case new:
+        struct numNodeFull *itterator = num->first;
+
+        while (itterator != NULL){
+            if (itterator->num != 0){
+                return 0;
+            }
+            itterator = itterator->next;
+        }
+
+        return 1;
+        break;
+    }
 }
